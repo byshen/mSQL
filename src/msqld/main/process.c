@@ -102,12 +102,19 @@ extern char *packet;
 **************************************************************************/
 
 #define _checkWriteAccess(server)					\
-	if (!aclCheckPerms(WRITE_ACCESS) || server->config.readOnly)	\
+	if (!aclCheckPerms(WRITE_ACCESS) )	\
 	{								\
-		netError(query->clientSock,"Access Denied\n");		\
+		netError(query->clientSock,"Access Denied: write access is required.\n");		\
 		debugTrace(TRACE_OUT,"processQuery()");			\
 		return;							\
+	} 									\
+	if (server->config.readOnly) \
+	{							 \
+		netError(query->clientSock,"Access Denied: server is in Read_Only mode\n");		\
+		debugTrace(TRACE_OUT,"processQuery()");			\
+		return;											\
 	}
+	
 
 
 
@@ -2432,7 +2439,7 @@ void processQuery(server, query, client, queryText)
 		case MSQL_SELECT: 
 			if (!aclCheckPerms(READ_ACCESS))
 			{
-				netError(query->clientSock,"Access Denied\n");
+				netError(query->clientSock,"Access Denied: read access is required for SELECT.\n");
 				debugTrace(TRACE_OUT,"processQuery()");
 				return;
 			}
